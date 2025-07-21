@@ -128,25 +128,6 @@ snowsql -a <account> -u <user> -f run_bronze_loader.sql
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /*
 ===============================================================================
 Stored Procedure: Load Bronze Layer (Source -> Bronze)
