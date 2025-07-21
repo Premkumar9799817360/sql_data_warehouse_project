@@ -1,3 +1,152 @@
+-- Create the bronze layer loader procedure in Snowflake
+
+CREATE OR REPLACE PROCEDURE bronze.load_bronze()
+RETURNS STRING
+LANGUAGE SQL
+AS
+$$
+DECLARE
+    batch_start_time TIMESTAMP;
+    batch_end_time TIMESTAMP;
+    start_time TIMESTAMP;
+    end_time TIMESTAMP;
+BEGIN
+    batch_start_time := CURRENT_TIMESTAMP();
+
+    -- Logging start
+    SYSTEM$PRINT('================================================');
+    SYSTEM$PRINT('Loading Bronze Layer');
+    SYSTEM$PRINT('================================================');
+
+    -- =============================
+    -- Loading CRM Tables
+    -- =============================
+    SYSTEM$PRINT('------------------------------------------------');
+    SYSTEM$PRINT('Loading CRM Tables');
+    SYSTEM$PRINT('------------------------------------------------');
+
+    start_time := CURRENT_TIMESTAMP();
+    SYSTEM$PRINT('>> Trunc bronze.crm_cust_info');
+    TRUNCATE TABLE bronze.crm_cust_info;
+    SYSTEM$PRINT('>> Load bronze.crm_cust_info');
+    COPY INTO bronze.crm_cust_info
+    FROM @bronze.crm_stage/cust_info.csv.gz
+    FILE_FORMAT = (TYPE = CSV FIELD_OPTIONALLY_ENCLOSED_BY='"' SKIP_HEADER=1);
+    end_time := CURRENT_TIMESTAMP();
+    SYSTEM$PRINT('>> Duration: ' || DATEDIFF('second', start_time, end_time) || ' seconds');
+
+    start_time := CURRENT_TIMESTAMP();
+    SYSTEM$PRINT('>> Trunc bronze.crm_prd_info');
+    TRUNCATE TABLE bronze.crm_prd_info;
+    SYSTEM$PRINT('>> Load bronze.crm_prd_info');
+    COPY INTO bronze.crm_prd_info
+    FROM @bronze.crm_stage/prd_info.csv.gz
+    FILE_FORMAT = (TYPE = CSV FIELD_OPTIONALLY_ENCLOSED_BY='"' SKIP_HEADER=1);
+    end_time := CURRENT_TIMESTAMP();
+    SYSTEM$PRINT('>> Duration: ' || DATEDIFF('second', start_time, end_time) || ' seconds');
+
+    start_time := CURRENT_TIMESTAMP();
+    SYSTEM$PRINT('>> Trunc bronze.crm_sales_details');
+    TRUNCATE TABLE bronze.crm_sales_details;
+    SYSTEM$PRINT('>> Load bronze.crm_sales_details');
+    COPY INTO bronze.crm_sales_details
+    FROM @bronze.crm_stage/sales_details.csv.gz
+    FILE_FORMAT = (TYPE = CSV FIELD_OPTIONALLY_ENCLOSED_BY='"' SKIP_HEADER=1);
+    end_time := CURRENT_TIMESTAMP();
+    SYSTEM$PRINT('>> Duration: ' || DATEDIFF('second', start_time, end_time) || ' seconds');
+
+    -- =============================
+    -- Loading ERP Tables
+    -- =============================
+    SYSTEM$PRINT('------------------------------------------------');
+    SYSTEM$PRINT('Loading ERP Tables');
+    SYSTEM$PRINT('------------------------------------------------');
+
+    start_time := CURRENT_TIMESTAMP();
+    SYSTEM$PRINT('>> Trunc bronze.erp_loc_a101');
+    TRUNCATE TABLE bronze.erp_loc_a101;
+    SYSTEM$PRINT('>> Load bronze.erp_loc_a101');
+    COPY INTO bronze.erp_loc_a101
+    FROM @bronze.erp_stage/loc_a101.csv.gz
+    FILE_FORMAT = (TYPE = CSV FIELD_OPTIONALLY_ENCLOSED_BY='"' SKIP_HEADER=1);
+    end_time := CURRENT_TIMESTAMP();
+    SYSTEM$PRINT('>> Duration: ' || DATEDIFF('second', start_time, end_time) || ' seconds');
+
+    start_time := CURRENT_TIMESTAMP();
+    SYSTEM$PRINT('>> Trunc bronze.erp_cust_az12');
+    TRUNCATE TABLE bronze.erp_cust_az12;
+    SYSTEM$PRINT('>> Load bronze.erp_cust_az12');
+    COPY INTO bronze.erp_cust_az12
+    FROM @bronze.erp_stage/cust_az12.csv.gz
+    FILE_FORMAT = (TYPE = CSV FIELD_OPTIONALLY_ENCLOSED_BY='"' SKIP_HEADER=1);
+    end_time := CURRENT_TIMESTAMP();
+    SYSTEM$PRINT('>> Duration: ' || DATEDIFF('second', start_time, end_time) || ' seconds');
+
+    start_time := CURRENT_TIMESTAMP();
+    SYSTEM$PRINT('>> Trunc bronze.erp_px_cat_g1v2');
+    TRUNCATE TABLE bronze.erp_px_cat_g1v2;
+    SYSTEM$PRINT('>> Load bronze.erp_px_cat_g1v2');
+    COPY INTO bronze.erp_px_cat_g1v2
+    FROM @bronze.erp_stage/px_cat_g1v2.csv.gz
+    FILE_FORMAT = (TYPE = CSV FIELD_OPTIONALLY_ENCLOSED_BY='"' SKIP_HEADER=1);
+    end_time := CURRENT_TIMESTAMP();
+    SYSTEM$PRINT('>> Duration: ' || DATEDIFF('second', start_time, end_time) || ' seconds');
+
+    batch_end_time := CURRENT_TIMESTAMP();
+
+    -- Logging completion
+    SYSTEM$PRINT('==========================================');
+    SYSTEM$PRINT('Loading Bronze Layer Completed');
+    SYSTEM$PRINT('Total Load Duration: ' || DATEDIFF('second', batch_start_time, batch_end_time) || ' seconds');
+    SYSTEM$PRINT('==========================================');
+
+    RETURN 'Bronze layer loading completed successfully.';
+EXCEPTION
+    WHEN OTHER THEN
+        SYSTEM$PRINT('==========================================');
+        SYSTEM$PRINT('ERROR OCCURRED DURING LOADING BRONZE LAYER');
+        SYSTEM$PRINT('Error Message: ' || ERROR_MESSAGE());
+        SYSTEM$PRINT('==========================================');
+        RETURN 'Error occurred during bronze layer loading.';
+END;
+$$;
+
+-- for use and running 
+USE DATABASE DATAWAREHOUSE;
+USE SCHEMA BRONZE;
+
+CALL bronze.load_bronze();
+
+
+--✅ Step 1: Create the loader procedure.
+snowsql -a <account> -u <user> -f create_bronze_loader_procedure.sql
+
+--✅ Step 2: Execute the procedure to load data.
+snowsql -a <account> -u <user> -f run_bronze_loader.sql
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /*
 ===============================================================================
 Stored Procedure: Load Bronze Layer (Source -> Bronze)
