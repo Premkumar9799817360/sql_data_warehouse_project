@@ -1,15 +1,17 @@
 
-
+/*
 ===========================================================
  -- Dimension Table: 
 ===========================================================
+
 
 
  _______________________________________________
 
  -- 1.Customer
  ________________________________________________
- 
+*/
+
 drop table if exists gold.dim_customer;
 create view gold.dim_customer AS
 SELECT 
@@ -31,10 +33,11 @@ LEFT JOIN silver.erp_loc_a101 la
 LEFT JOIN  silver.erp_cust_az12 ca
 on ci.cst_key = ca.cid
 
-_________________________________________________________
+/*_________________________________________________________
 
 --2 Product Table
 __________________________________________________________
+ */
 drop table if exists gold.dim_products;
 create view gold.dim_products as 
 select 
@@ -54,10 +57,12 @@ left join silver.erp_px_cat_g1v2 pc
 on pn.cat_id = pc.id
 where prd_end_dt is null  -- filter out all historical date
 
+ /*
 ==================================================================
 -- Fact Table
 ==================================================================
-
+*/
+ 
 drop table if exists gold.fact_sales
 create view gold.fact_sales as
 select 
@@ -75,9 +80,6 @@ left join gold.dim_products pr
 on sd.sls_prd_key = pr.product_number
 left join gold.dim_customer cu
 on sd.sls_cust_id = cu.customer_id
-
-
-
 
 
 
