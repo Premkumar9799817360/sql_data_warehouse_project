@@ -11,7 +11,7 @@ SHOW SCHEMAS;
 
 -- first folder CRM data
 
--- TABLE 1 FOR ERM SOURCE
+-- TABLE 1 FOR CRM SOURCE
 DROP TABLE IF EXISTS bronze.crm_cust_info;
 create table bronze.crm_cust_info
 (
